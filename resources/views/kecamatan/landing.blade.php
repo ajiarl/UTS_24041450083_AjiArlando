@@ -109,10 +109,38 @@
 
                 <!-- Action Button -->
                 <div class="hidden sm:flex items-center space-x-3">
-                    <a href="{{ route('admin.login') }}" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:text-pemda-700 hover:bg-slate-100 transition flex items-center space-x-1.5 border border-slate-200">
-                        <i class="fa-solid fa-lock text-xs text-amber-500"></i>
-                        <span>Login Admin</span>
-                    </a>
+                    @auth
+                        <div class="flex items-center space-x-2 bg-slate-100 rounded-xl px-3 py-1.5 border border-slate-200">
+                            <span class="w-7 h-7 rounded-lg bg-pemda-600 text-white flex items-center justify-center text-xs font-bold">
+                                <i class="fa-solid fa-user"></i>
+                            </span>
+                            <div class="text-left">
+                                <p class="text-xs font-bold text-slate-800 leading-none">{{ Auth::user()->name }}</p>
+                                <span class="text-[10px] text-pemda-700 font-semibold uppercase">{{ Auth::user()->role ?? 'Masyarakat' }}</span>
+                            </div>
+                        </div>
+                        @if(Auth::user()->role === 'admin')
+                            <a href="{{ route('admin.dashboard') }}" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-slate-800 hover:bg-slate-700 transition flex items-center space-x-1.5 shadow-sm">
+                                <i class="fa-solid fa-gauge text-xs text-amber-400"></i>
+                                <span>Dashboard Admin</span>
+                            </a>
+                        @endif
+                        <form action="{{ route('logout') }}" method="POST" class="inline">
+                            @csrf
+                            <button type="submit" class="p-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 transition" title="Keluar">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                            </button>
+                        </form>
+                    @else
+                        <a href="{{ route('login') }}" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:text-pemda-700 hover:bg-slate-100 transition flex items-center space-x-1.5 border border-slate-200">
+                            <i class="fa-solid fa-right-to-bracket text-xs text-pemda-600"></i>
+                            <span>Masuk Warga</span>
+                        </a>
+                        <a href="{{ route('register') }}" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 transition flex items-center space-x-1.5 shadow-sm">
+                            <i class="fa-solid fa-user-plus text-xs"></i>
+                            <span>Daftar Akun</span>
+                        </a>
+                    @endauth
                     <a href="#aspirasi" class="px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-pemda-600 hover:bg-pemda-700 shadow-md shadow-pemda-600/20 transition-all flex items-center space-x-2">
                         <i class="fa-solid fa-bullhorn text-amber-300"></i>
                         <span>Lapor / Aspirasi</span>
@@ -130,6 +158,26 @@
 
         <!-- Mobile Drawer Menu -->
         <div id="mobile-menu" class="hidden lg:hidden bg-white border-t border-slate-200 px-6 py-4 space-y-3 shadow-lg">
+            @auth
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-slate-800">{{ Auth::user()->name }}</p>
+                        <span class="text-[10px] text-pemda-700 font-semibold uppercase">{{ Auth::user()->role ?? 'Masyarakat' }}</span>
+                    </div>
+                    <form action="{{ route('logout') }}" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" class="text-xs text-rose-600 font-semibold hover:underline">Keluar</button>
+                    </form>
+                </div>
+                @if(Auth::user()->role === 'admin')
+                    <a href="{{ route('admin.dashboard') }}" class="block font-medium text-amber-600 hover:text-amber-700 py-1">Dashboard Admin</a>
+                @endif
+            @else
+                <div class="grid grid-cols-2 gap-2 pt-1 pb-2">
+                    <a href="{{ route('login') }}" class="text-center py-2 rounded-xl text-xs font-semibold text-slate-700 border border-slate-300">Masuk</a>
+                    <a href="{{ route('register') }}" class="text-center py-2 rounded-xl text-xs font-semibold text-white bg-amber-600">Daftar Warga</a>
+                </div>
+            @endauth
             <a href="#beranda" class="block font-medium text-slate-700 hover:text-pemda-600 py-1 mobile-link">Beranda</a>
             <a href="#profil" class="block font-medium text-slate-700 hover:text-pemda-600 py-1 mobile-link">Profil Wilayah</a>
             <a href="#kelurahan" class="block font-medium text-slate-700 hover:text-pemda-600 py-1 mobile-link">Kelurahan</a>
@@ -141,6 +189,30 @@
     </header>
 
     <!-- Success Flash Notification -->
+    @if(session('success_auth'))
+    <div id="flash-auth" class="max-w-4xl mx-auto px-4 mt-6">
+        <div class="p-4 rounded-2xl bg-emerald-700 text-white shadow-lg flex items-start justify-between">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-circle-check text-2xl text-emerald-300"></i>
+                <p class="text-sm font-medium">{{ session('success_auth') }}</p>
+            </div>
+            <button onclick="document.getElementById('flash-auth').remove()" class="text-emerald-200 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+    </div>
+    @endif
+
+    @if(session('info_auth'))
+    <div id="flash-info" class="max-w-4xl mx-auto px-4 mt-6">
+        <div class="p-4 rounded-2xl bg-slate-700 text-white shadow-lg flex items-start justify-between">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-circle-info text-2xl text-slate-300"></i>
+                <p class="text-sm font-medium">{{ session('info_auth') }}</p>
+            </div>
+            <button onclick="document.getElementById('flash-info').remove()" class="text-slate-200 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+    </div>
+    @endif
+
     @if(session('success_aspirasi'))
     <div id="flash-notif" class="max-w-4xl mx-auto px-4 mt-6">
         <div class="p-4 rounded-2xl bg-emerald-700 text-white shadow-lg flex items-start justify-between">
@@ -464,11 +536,11 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-semibold text-slate-300 mb-1">NAMA LENGKAP PELAPOR *</label>
-                            <input type="text" name="nama" required placeholder="Contoh: Muhammad Yusuf" class="w-full px-4 py-3 text-xs rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400">
+                            <input type="text" name="nama" required value="{{ Auth::check() ? Auth::user()->name : old('nama') }}" placeholder="Contoh: Muhammad Yusuf" class="w-full px-4 py-3 text-xs rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-300 mb-1">NO. TELEPON / WHATSAPP *</label>
-                            <input type="tel" name="telepon" required placeholder="Contoh: 081234567890" class="w-full px-4 py-3 text-xs rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400">
+                            <input type="tel" name="telepon" required value="{{ Auth::check() ? Auth::user()->telepon : old('telepon') }}" placeholder="Contoh: 081234567890" class="w-full px-4 py-3 text-xs rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400">
                         </div>
                     </div>
 
@@ -476,10 +548,13 @@
                         <div>
                             <label class="block text-xs font-semibold text-slate-300 mb-1">WILAYAH KELURAHAN *</label>
                             <select name="kelurahan" required class="w-full px-4 py-3 text-xs rounded-xl bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400">
-                                <option value="Alang-Alang Lebar">Kelurahan Alang-Alang Lebar</option>
-                                <option value="Karya Baru">Kelurahan Karya Baru</option>
-                                <option value="Talang Kelapa">Kelurahan Talang Kelapa</option>
-                                <option value="Srijaya">Kelurahan Srijaya</option>
+                                @php
+                                    $userKelurahan = Auth::check() ? Auth::user()->kelurahan : old('kelurahan');
+                                @endphp
+                                <option value="Alang-Alang Lebar" {{ $userKelurahan == 'Alang-Alang Lebar' ? 'selected' : '' }}>Kelurahan Alang-Alang Lebar</option>
+                                <option value="Karya Baru" {{ $userKelurahan == 'Karya Baru' ? 'selected' : '' }}>Kelurahan Karya Baru</option>
+                                <option value="Talang Kelapa" {{ $userKelurahan == 'Talang Kelapa' ? 'selected' : '' }}>Kelurahan Talang Kelapa</option>
+                                <option value="Srijaya" {{ $userKelurahan == 'Srijaya' ? 'selected' : '' }}>Kelurahan Srijaya</option>
                             </select>
                         </div>
                         <div>
@@ -586,4 +661,3 @@
     </script>
 </body>
 </html>
-

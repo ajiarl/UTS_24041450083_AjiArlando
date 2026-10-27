@@ -25,15 +25,20 @@ Tahun Akademik: Ganjil 2026/2027
 
 ## 1. Ikhtisar Sistem (Showcase Proyek)
 
-Sistem Informasi Kecamatan Alang-Alang Lebar (AAL) Kota Palembang merupakan aplikasi berbasis web yang menggabungkan portal informasi publik satu pintu dengan modul pengaduan masyarakat (*citizen aspirasi & complaint system*). Sistem ini menghubungkan warga di 4 kelurahan dengan unit layanan pemerintah kecamatan, serta terintegrasi langsung dengan panel pengawasan administrator internal.
+Sistem Informasi Kecamatan Alang-Alang Lebar (AAL) Kota Palembang merupakan aplikasi berbasis web yang menggabungkan portal informasi publik satu pintu dengan modul pengaduan masyarakat (*citizen aspirasi & complaint system*) serta layanan mandiri kependudukan berbasis akun warga resmi. Sistem ini menghubungkan warga di 4 kelurahan dengan unit layanan pemerintah kecamatan, serta terintegrasi langsung dengan panel pengawasan administrator internal.
 
 ### Fitur Utama
 
-#### A. Portal Publik (Warga & Pengunjung)
+#### A. Portal Publik & Modul Registrasi Warga
 * **Profil Geografis & Kewilayahan:** Visualisasi data statistik wilayah (34,58 km²), jumlah penduduk (108.450+ jiwa), sebaran 240+ RT/RW, dan batas administrasi terpadu.
 * **Informasi 4 Kelurahan:** Informasi lengkap Kelurahan Alang-Alang Lebar, Kelurahan Karya Baru, Kelurahan Talang Kelapa, dan Kelurahan Srijaya.
 * **Katalog Standar Pelayanan Publik:** Prosedur dan persyaratan pengurusan dokumen kependudukan (KTP elektronik, Kartu Identitas Anak/KIA, Kartu Keluarga baru/perubahan, surat pindah/datang, dan surat keterangan domisili/usaha).
 * **Warta & Publikasi Kegiatan:** Rangkuman agenda pembangunan infrastruktur, pelayanan keliling jemput bola, aksi lingkungan, dan pengumuman resmi kecamatan.
+* **Modul Registrasi & Autentikasi Masyarakat:**
+  * **Pendaftaran Berbasis NIK KTP:** Warga mendaftarkan akun secara mandiri menggunakan NIK resmi 16 digit yang unik, nama lengkap, email, nomor WhatsApp/telepon aktif, kelurahan domisili resmi, alamat rumah lengkap, dan kata sandi terkonfirmasi.
+  * **Auto-Login Instan:** Setelah proses registrasi berhasil, sistem langsung mengautentikasi akun warga secara otomatis dan mengarahkan kembali ke beranda dengan pesan sambutan resmi.
+  * **Otentikasi Masuk Fleksibel:** Warga dapat masuk ke akun menggunakan Nomor Induk Kependudukan (NIK 16 digit) ataupun Alamat Email terdaftar beserta kata sandi.
+  * **Integrasi Auto-Fill Pengaduan:** Pada saat warga telah masuk, formulir pengaduan online secara otomatis mengisikan nama pelapor (terkunci dengan status readonly), nomor telepon, dan kelurahan domisili sesuai profil akun warga.
 * **Kanal Aspirasi & Pengaduan Daring:** Formulir pelaporan warga dengan validasi data nomor telepon, pilihan kelurahan, klasifikasi topik, dan rincian pesan.
 
 #### B. Panel Kontrol Administrator (Back-Office)
@@ -54,9 +59,9 @@ Sistem Informasi Kecamatan Alang-Alang Lebar (AAL) Kota Palembang merupakan apli
 
 ---
 
-## 3. Kesesuaian 8 Tahapan Pengembangan Modul Acuan
+## 3. Kesesuaian Tahapan Pengembangan Modul Acuan
 
-Implementasi sistem merujuk penuh pada modul panduan teknis pembuatan website Kecamatan Alang-Alang Lebar:
+Implementasi sistem merujuk penuh pada modul panduan teknis pembuatan website Kecamatan Alang-Alang Lebar serta modul lanjutan sistem registrasi masyarakat:
 
 ### Tahap 1: Inisialisasi Proyek Laravel 12
 * Pembuatan struktur dasar framework Laravel versi 12 menggunakan Composer.
@@ -92,7 +97,7 @@ Implementasi sistem merujuk penuh pada modul panduan teknis pembuatan website Ke
   * `destroy($id)`: Menghapus rekaman pengaduan dari basis data.
 
 ### Tahap 5: Pembuatan Tampilan Antarmuka (Blade Views)
-* `resources/views/kecamatan/landing.blade.php`: Portal utama publik dengan tata letak responsif, kartu statistik, galeri kelurahan, tabel SOP layanan, warta kegiatan, dan formulir aduan interaktif.
+* `resources/views/kecamatan/landing.blade.php`: Portal utama publik dengan tata letak responsif, kartu statistik, galeri kelurahan, tabel SOP layanan, warta kegiatan, navigasi autentikasi warga, dan formulir aduan interaktif auto-fill.
 * `resources/views/admin/login.blade.php`: Antarmuka login administrator dengan panel kartu modern, pesan peringatan validasi, visibilitas kata sandi, dan proteksi CSRF.
 * `resources/views/admin/dashboard.blade.php`: Panel monitoring administrator dengan kartu indikator metrik, filter data, tabel riwayat aspirasi, form pembaruan status instan, dan aksi hapus laporan.
 
@@ -104,8 +109,23 @@ Pemisahan domain akses antara publik dan administrator internal pada berkas `rou
 ### Tahap 7: Seeding Akun Administrator & Data Sampel
 * Penyiapan seeder basis data (`database/seeders/DatabaseSeeder.php`) untuk menyuntikkan akun administrator resmi dan sampel data aspirasi awal.
 
-### Tahap 8: Verifikasi & Kesiapan Eksekusi Sistem
-* Pengujian sintaks kode PHP, routing registry (`php artisan route:list`), dan kesiapan server HTTP lokal (`php artisan serve --no-reload`).
+### Tahap 8: Pengembangan Lanjutan Modul Registrasi & Autentikasi Masyarakat
+1. **Penambahan Field Tabel Users via Migration:**
+   * Migrasi baru: `database/migrations/2026_10_27_062554_add_masyarakat_fields_to_users_table.php`.
+   * Kolom tambahan: `nik` (16 digit, unik, nullable), `telepon` (varchar 20, nullable), `kelurahan` (varchar 100, nullable), `alamat` (text, nullable), dan `role` (enum: 'admin', 'masyarakat', default 'masyarakat').
+   * Pendaftaran field mass-assignment pada `$fillable` di model `app/Models/User.php`.
+2. **Controller Autentikasi Warga (`app/Http/Controllers/Auth/MasyarakatAuthController.php`):**
+   * `showRegistrationForm()`: Menampilkan formulir pendaftaran warga, redirect ke beranda bila telah login.
+   * `register(Request $request)`: Validasi ketat NIK 16 digit angka unik, hash password, penyimpanan data warga, auto-login via `Auth::login()`, regenerasi session, dan redirect ke beranda dengan flash pesan notifikasi.
+   * `showLoginForm()`: Menampilkan halaman login khusus masyarakat.
+   * `login(Request $request)`: Otentikasi fleksibel pendeteksi otomatis format NIK atau Email, login attempt dengan remember token, dan penanganan pesan error kredensial.
+   * `logout(Request $request)`: Mengakhiri sesi warga, invalidasi session, regenerasi CSRF token, dan redirect ke beranda.
+3. **Penyediaan Antarmuka Registrasi & Login Warga:**
+   * `resources/views/auth/register.blade.php`: Antarmuka registrasi modern berbasis tema resmi gelap (slate-900), aksen hijau pemda dan amber, kartu form lengkap data kependudukan.
+   * `resources/views/auth/login.blade.php`: Antarmuka login warga selaras tema sistem, form login NIK/Email, opsi ingat saya, dan tautan pendaftaran akun.
+4. **Integrasi Beranda & Formulir Aspirasi:**
+   * Navbar Header & Drawer: Menampilkan tombol Masuk Warga dan Daftar Akun bagi pengunjung, serta badge sapaan nama warga dan tombol Keluar (Logout) bagi pengguna terautentikasi.
+   * Auto-fill formulir laporan warga: Mengisi otomatis nama pelapor (status readonly), kontak telepon, dan pilihan kelurahan domisili saat warga telah masuk.
 
 ---
 
@@ -115,6 +135,11 @@ Pemisahan domain akses antara publik dan administrator internal pada berkas `rou
 | :--- | :--- | :--- | :--- | :--- |
 | `GET` | `/` | `KecamatanController@index` | `kecamatan.home` | Terbuka (Publik) |
 | `POST` | `/aspirasi` | `KecamatanController@aspirasi` | `kecamatan.aspirasi` | Terbuka (Publik) |
+| `GET` | `/register` | `MasyarakatAuthController@showRegistrationForm` | `register` | Tamu / Guest |
+| `POST` | `/register` | `MasyarakatAuthController@register` | `register.submit` | Tamu / Guest |
+| `GET` | `/login` | `MasyarakatAuthController@showLoginForm` | `login` | Tamu / Guest |
+| `POST` | `/login` | `MasyarakatAuthController@login` | `login.submit` | Tamu / Guest |
+| `POST` | `/logout` | `MasyarakatAuthController@logout` | `logout` | Terotentikasi (Warga) |
 | `GET` | `/admin/login` | `AdminAuthController@showLoginForm` | `admin.login` | Tamu / Guest |
 | `POST` | `/admin/login` | `AdminAuthController@login` | `admin.login.submit` | Tamu / Guest |
 | `POST` | `/admin/logout` | `AdminAuthController@logout` | `admin.logout` | Terotentikasi (Admin) |
@@ -124,16 +149,18 @@ Pemisahan domain akses antara publik dan administrator internal pada berkas `rou
 
 ---
 
-## 5. Kredensial Akun Administrator
+## 5. Kredensial Akun Default
 
-Untuk keperluan pengujian panel administrasi, gunakan akun pengelola berikut:
+### A. Akun Pengelola (Administrator)
+* **URL Login Admin:** `http://127.0.0.1:8000/admin/login`
+* **Alamat Email:** `admin@palembang.go.id`
+* **Kata Sandi:** `admin123`
+* **Tingkat Akses:** Administrator Kecamatan
 
-| Parameter | Kredensial Default |
-| :--- | :--- |
-| **URL Login** | `http://127.0.0.1:8000/admin/login` |
-| **Alamat Email** | `admin@palembang.go.id` |
-| **Kata Sandi (Password)** | `admin123` |
-| **Tingkat Akses** | Administrator Kecamatan |
+### B. Akun Layanan Warga (Masyarakat)
+* **URL Login Warga:** `http://127.0.0.1:8000/login`
+* **URL Registrasi Warga:** `http://127.0.0.1:8000/register`
+* **Metode Masuk:** Menggunakan 16 digit NIK atau Alamat Email terdaftar
 
 ---
 
@@ -189,6 +216,8 @@ php artisan serve --no-reload
 
 Akses sistem melalui peramban web pada alamat:
 * **Portal Publik Warga:** `http://127.0.0.1:8000`
+* **Registrasi Akun Warga:** `http://127.0.0.1:8000/register`
+* **Masuk Akun Warga:** `http://127.0.0.1:8000/login`
 * **Panel Administrator:** `http://127.0.0.1:8000/admin/login`
 
 ---
@@ -202,6 +231,8 @@ UTS_24041450083_AjiArlando/
 │   │   └── Controllers/
 │   │       ├── AdminAuthController.php
 │   │       ├── AdminDashboardController.php
+│   │       ├── Auth/
+│   │       │   └── MasyarakatAuthController.php
 │   │       ├── Controller.php
 │   │       └── KecamatanController.php
 │   └── Models/
@@ -221,7 +252,8 @@ UTS_24041450083_AjiArlando/
 │   │   ├── 0001_01_01_000000_create_users_table.php
 │   │   ├── 0001_01_01_000001_create_cache_table.php
 │   │   ├── 0001_01_01_000002_create_jobs_table.php
-│   │   └── 2026_10_25_000000_create_aspirasis_table.php
+│   │   ├── 2026_10_25_000000_create_aspirasis_table.php
+│   │   └── 2026_10_27_062554_add_masyarakat_fields_to_users_table.php
 │   └── seeders/
 │       └── DatabaseSeeder.php
 ├── public/
@@ -232,6 +264,9 @@ UTS_24041450083_AjiArlando/
 │       ├── admin/
 │       │   ├── dashboard.blade.php
 │       │   └── login.blade.php
+│       ├── auth/
+│       │   ├── login.blade.php
+│       │   └── register.blade.php
 │       └── kecamatan/
 │           └── landing.blade.php
 ├── routes/
@@ -248,9 +283,9 @@ UTS_24041450083_AjiArlando/
 ## 8. Status Pengujian & Kesiapan Sistem
 
 * **Pemeriksaan Sintaks PHP:** Lulus tanpa galat (*zero syntax error*).
-* **Integritas Rute:** Seluruh 8 rute publik dan terproteksi middleware terdaftar secara valid.
+* **Integritas Rute:** Seluruh 13 rute publik, registrasi warga, dan terproteksi middleware terdaftar secara valid.
 * **Konektivitas Data:** Skema migrasi, berkas dump SQL (`db_kecamatan_aal.sql`), dan seeder siap pakai untuk inisialisasi basis data langsung.
-* **Kepatuhan Modul Acuan:** Selaras dengan spesifikasi modul tugas UTS.
+* **Kepatuhan Modul Acuan:** Selaras dengan spesifikasi modul tugas UTS dan modul registrasi masyarakat.
 
 ---
 *Dokumentasi Teknis Ujian Tengah Semester (UTS) © 2026 Aji Arlando. Hak Cipta Dilindungi.*
